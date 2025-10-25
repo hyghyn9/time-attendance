@@ -1,7 +1,9 @@
 {
-  "name": "node-starter",
-  "private": true,
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "dependencies": {
+    "@line/bot-sdk": "^10.0.1",
+    "better-sqlite3": "^12.2.0",
+    "express": "^5.1.0",
+    "sqlite3": "^5.1.7",
+    "xlsx": "^0.18.5"
   }
 }

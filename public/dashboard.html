@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการข้อมูลเวลาทำงาน - Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Sarabun', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .main-content {
+            padding: 20px 0;
+        }
+
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 10px 10px 0 0;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.active {
+            background: white;
+            border-bottom-color: #667eea;
+            color: #667eea;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active:hover {
+            background: white;
+        }
+
+        .tab-content {
+            background: white;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            min-height: 600px;
+        }
+
+        .tab-pane {
+            display: none;
+            padding: 20px;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .filter-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .filter-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8, #20c997);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+            color: #212529;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .data-section {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .data-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .data-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .record-count {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            max-height: 600px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .data-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-complete {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-partial {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-missing {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 0;
+            border: none;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            background: none;
+            opacity: 0.8;
+        }
+
+        .close:hover {
+            opacity: 1;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .modal-footer {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 0 0 10px 10px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .summary-card h3 {
+            color: #667eea;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .summary-card p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .filter-row {
+                flex-direction: column;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                justify-content: center;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+
+            .form-row {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1>🏢 ระบบจัดการข้อมูลเวลาทำงาน</h1>
+            <p>Admin Dashboard - จัดการพนักงานและข้อมูลการบันทึกเวลา</p>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="alert alert-success" id="successAlert"></div>
+            <div class="alert alert-error" id="errorAlert"></div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('attendance')">📊 ข้อมูลเวลาทำงาน</button>
+                <button class="tab" onclick="switchTab('employees')">👥 จัดการพนักงาน</button>
+            </div>
+
+            <div class="tab-content">
+                <!-- Tab 1: Attendance Management -->
+                <div id="attendanceTab" class="tab-pane active">
+                    <!-- Summary Cards -->
+                    <div class="summary-cards">
+                        <div class="summary-card">
+                            <h3 id="totalRecords">-</h3>
+                            <p>รายการทั้งหมด</p>
+                        </div>
+                        <div class="summary-card">
+                            <h3 id="totalUsers">-</h3>
+                            <p>จำนวนพนักงาน</p>
+                        </div>
+                        <div class="summary-card">
+                            <h3 id="todayRecords">-</h3>
+                            <p>รายการวันนี้</p>
+                        </div>
+                        <div class="summary-card">
+                            <h3 id="completeRecords">-</h3>
+                            <p>บันทึกครบถ้วน</p>
+                        </div>
+                    </div>
+
+                    <!-- Filter Section -->
+                    <div class="filter-section">
+                        <div class="filter-title">🔍 กรองและค้นหาข้อมูล</div>
+                        
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label for="dateFrom">วันที่เริ่มต้น</label>
+                                <input type="date" id="dateFrom" />
+                            </div>
+                            <div class="filter-group">
+                                <label for="dateTo">วันที่สิ้นสุด</label>
+                                <input type="date" id="dateTo" />
+                            </div>
+                            <div class="filter-group">
+                                <label for="userFilter">ค้นหาผู้ใช้</label>
+                                <input type="text" id="userFilter" placeholder="ชื่อ หรือ User ID" />
+                            </div>
+                        </div>
+
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label for="statusFilter">สถานะการบันทึก</label>
+                                <select id="statusFilter">
+                                    <option value="">ทั้งหมด</option>
+                                    <option value="complete">บันทึกครบถ้วน</option>
+                                    <option value="partial">บันทึกไม่ครบ</option>
+                                    <option value="checkin_only">เข้างานอย่างเดียว</option>
+                                    <option value="not_complete">ไม่สมบูรณ์</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="sortBy">เรียงตาม</label>
+                                <select id="sortBy">
+                                    <option value="-">-</option>
+                                    <option value="created_at_desc">วันที่ล่าสุด</option>
+                                    <option value="created_at_asc">วันที่เก่าสุด</option>
+                                    <option value="user_id_asc">User ID (A-Z)</option>
+                                    <option value="checkin_time_asc">เวลาเข้างาน</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="button-group">
+                            <button class="btn btn-primary" onclick="loadAttendanceData()">
+                                🔍 ค้นหา
+                            </button>
+                            <button class="btn btn-success" onclick="showAttendanceModal()">
+                                ➕ เพิ่มการบันทึกเวลา
+                            </button>
+                            <button class="btn btn-success" onclick="exportToExcel()">
+                                📊 Export Excel
+                            </button>
+                            <button class="btn btn-info" onclick="refreshData()">
+                                🔄 รีเฟรช
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Data Section -->
+                    <div class="data-section">
+                        <div class="data-header">
+                            <div class="data-title">📋 ข้อมูลการบันทึกเวลา</div>
+                            <div class="record-count" id="recordCount">0 รายการ</div>
+                        </div>
+
+                        <div class="table-container">
+                            <div class="loading" id="loadingIndicator">
+                                <div class="loading-spinner"></div>
+                                <div>กำลังโหลดข้อมูล...</div>
+                            </div>
+
+                            <table class="data-table" id="attendanceTable" style="display: none;">
+                                <thead>
+                                    <tr>
+                                        <th>วันที่</th>
+                                        <th>ชื่อ</th>
+                                        <th>เวลาเข้างาน</th>
+                                        <th>เวลาออกงาน</th>
+                                        <th>ชั่วโมงทำงาน</th>
+                                        <th>สถานะ</th>
+                                        <th>หมายเหตุ</th>
+                                        <th>การจัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attendanceTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Employee Management -->
+                <div id="employeesTab" class="tab-pane">
+                    <div class="section-header">
+                        <div class="section-title">👥 จัดการพนักงาน</div>
+                        <button class="btn btn-success" onclick="showEmployeeModal()">
+                            ➕ เพิ่มพนักงาน
+                        </button>
+                    </div>
+
+                    <div class="data-section">
+                        <div class="data-header">
+                            <div class="data-title">รายชื่อพนักงาน</div>
+                            <div class="record-count" id="employeeCount">0 คน</div>
+                        </div>
+
+                        <div class="table-container">
+                            <div class="loading" id="employeeLoadingIndicator">
+                                <div class="loading-spinner"></div>
+                                <div>กำลังโหลดข้อมูลพนักงาน...</div>
+                            </div>
+
+                            <table class="data-table" id="employeeTable" style="display: none;">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Line User ID</th>
+                                        <th>ชื่อ</th>
+                                        <th>แผนก</th>
+                                        <th>ตำแหน่ง</th>
+                                        <th>วันที่สร้าง</th>
+                                        <th>การจัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="employeeTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Employee Modal -->
+    <div id="employeeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="employeeModalTitle">เพิ่มพนักงานใหม่</h3>
+                <button class="close" onclick="closeModal('employeeModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="employeeForm">
+                    <input type="hidden" id="employeeId" />
+                    <div class="form-group">
+                        <label for="lineUserId">Line User ID *</label>
+                        <input type="text" id="lineUserId" placeholder="U1234567890abcdef..." required />
+                    </div>
+                    <div class="form-group">
+                        <label for="displayName">ชื่อ *</label>
+                        <input type="text" id="displayName" placeholder="ชื่อ-นามสกุล" required />
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="department">แผนก</label>
+                            <input type="text" id="department" placeholder="แผนก/หน่วยงาน" />
+                        </div>
+                        <div class="form-group">
+                            <label for="position">ตำแหน่ง</label>
+                            <input type="text" id="position" placeholder="ตำแหน่งงาน" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('employeeModal')">ยกเลิก</button>
+                <button type="button" class="btn btn-primary" onclick="saveEmployee()">บันทึก</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Modal -->
+    <div id="attendanceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="attendanceModalTitle">เพิ่มการบันทึกเวลา</h3>
+                <button class="close" onclick="closeModal('attendanceModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="attendanceForm">
+                    <input type="hidden" id="attendanceId" />
+                    <div class="form-group">
+                        <label for="userSelect">พนักงาน *</label>
+                        <select id="userSelect" required>
+                            <option value="">เลือกพนักงาน</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="checkinTime">เวลาเข้างาน</label>
+                            <input type="datetime-local" id="checkinTime" />
+                        </div>
+                        <div class="form-group">
+                            <label for="checkoutTime">เวลาออกงาน</label>
+                            <input type="datetime-local" id="checkoutTime" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="checkinLat">Latitude เข้างาน</label>
+                            <input type="number" id="checkinLat" placeholder="14.995965" step="any" />
+                        </div>
+                        <div class="form-group">
+                            <label for="checkinLon">Longitude เข้างาน</label>
+                            <input type="number" id="checkinLon" placeholder="102.107700" step="any" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="checkoutLat">Latitude ออกงาน</label>
+                            <input type="number" id="checkoutLat" placeholder="14.995965" step="any" />
+                        </div>
+                        <div class="form-group">
+                            <label for="checkoutLon">Longitude ออกงาน</label>
+                            <input type="number" id="checkoutLon" placeholder="102.107700" step="any" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="attendanceNote">หมายเหตุ</label>
+                        <textarea id="attendanceNote" placeholder="หมายเหตุเพิ่มเติม (ไม่บังคับ)" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('attendanceModal')">ยกเลิก</button>
+                <button type="button" class="btn btn-primary" onclick="saveAttendance()">บันทึก</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let attendanceData = [];
+        let usersData = [];
+        let currentTab = 'attendance';
+
+        // Tab Management
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update tab panes
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+            
+            if (tabName === 'attendance') {
+                document.getElementById('attendanceTab').classList.add('active');
+                loadAttendanceData();
+            } else if (tabName === 'employees') {
+                document.getElementById('employeesTab').classList.add('active');
+                loadEmployeeData();
+            }
+            
+            currentTab = tabName;
+        }
+
+        // Initialize page
+        async function initializePage() {
+            initializeDateInputs();
+            await loadUsersData();
+            await loadAttendanceData();
+            updateSummary();
+            populateUserSelect();
+        }
+
+        // Initialize date inputs (today to today)
+        function initializeDateInputs() {
+            const today = new Date();
+
+            document.getElementById('dateFrom').value = today.toISOString().split('T')[0];
+            document.getElementById('dateTo').value = today.toISOString().split('T')[0];
+        }
+
+        // Load users data
+        async function loadUsersData() {
+            try {
+                const response = await fetch('/api/admin/users');
+                if (response.ok) {
+                    const result = await response.json();
+                    usersData = result.users || [];
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        // Load employee data for employee management tab
+        async function loadEmployeeData() {
+            try {
+                showEmployeeLoading();
+                const response = await fetch('/api/admin/users');
+                const result = await response.json();
+                
+                if (result.success) {
+                    usersData = result.users || [];
+                    renderEmployeeTable();
+                } else {
+                    showError('เกิดข้อผิดพลาดในการโหลดข้อมูลพนักงาน');
+                }
+            } catch (error) {
+                console.error('Error loading employee data:', error);
+                showError('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+            } finally {
+                hideEmployeeLoading();
+            }
+        }
+
+        // Render employee table
+        function renderEmployeeTable() {
+            const tbody = document.getElementById('employeeTableBody');
+            tbody.innerHTML = '';
+
+            if (usersData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #666;">ไม่มีข้อมูลพนักงาน</td></tr>';
+                return;
+            }
+
+            usersData.forEach(user => {
+                const row = createEmployeeTableRow(user);
+                tbody.appendChild(row);
+            });
+
+            document.getElementById('employeeCount').textContent = `${usersData.length} คน`;
+        }
+
+        // Create employee table row
+        function createEmployeeTableRow(user) {
+            const tr = document.createElement('tr');
+            
+            tr.innerHTML = `
+                <td>${user.id}</td>
+                <td>${user.line_user_id.substring(0, 15)}...</td>
+                <td>${user.display_name || '-'}</td>
+                <td>${user.department || '-'}</td>
+                <td>${user.position || '-'}</td>
+                <td>${formatDate(user.created_at)}</td>
+                <td>
+                    <button class="btn btn-warning btn-sm" onclick="editEmployee(${user.id})">แก้ไข</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteEmployee(${user.id}, '${user.display_name}')">ลบ</button>
+                </td>
+            `;
+            
+            return tr;
+        }
+
+        // Load attendance data
+        async function loadAttendanceData() {
+            try {
+                showLoading();
+                
+                const filters = getFilters();
+                const queryParams = new URLSearchParams(filters);
+                
+                const response = await fetch(`/api/admin/attendance?${queryParams}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    attendanceData = result.data || [];
+                    renderAttendanceTable();
+                    updateSummary();
+                    showSuccess(`โหลดข้อมูลสำเร็จ: ${attendanceData.length} รายการ`);
+                } else {
+                    showError('เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error loading attendance data:', error);
+                showError('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Get filters
+        function getFilters() {
+            return {
+                dateFrom: document.getElementById('dateFrom').value,
+                dateTo: document.getElementById('dateTo').value,
+                userFilter: document.getElementById('userFilter').value,
+                statusFilter: document.getElementById('statusFilter').value,
+                sortBy: document.getElementById('sortBy').value
+            };
+        }
+
+        // Render attendance table
+        function renderAttendanceTable() {
+            const tbody = document.getElementById('attendanceTableBody');
+            tbody.innerHTML = '';
+
+            if (attendanceData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #666;">ไม่พบข้อมูล</td></tr>';
+                return;
+            }
+
+            attendanceData.forEach(record => {
+                const row = createAttendanceTableRow(record);
+                tbody.appendChild(row);
+            });
+
+            document.getElementById('recordCount').textContent = `${attendanceData.length} รายการ`;
+        }
+
+        // Create attendance table row
+        function createAttendanceTableRow(record) {
+            const tr = document.createElement('tr');
+            
+            // Find user display name
+            const user = usersData.find(u => u.line_user_id === record.user_id);
+            const displayName = user ? user.display_name : record.display_name || 'ไม่ทราบชื่อ';
+            
+            // Calculate work hours
+            let workHours = '-';
+            if (record.checkin_time && record.checkout_time) {
+                const checkinTime = new Date(record.checkin_time);
+                const checkoutTime = new Date(record.checkout_time);
+                const diffMs = checkoutTime - checkinTime;
+                const hours = Math.floor(diffMs / (1000 * 60 * 60));
+                const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                workHours = `${hours}:${minutes.toString().padStart(2, '0')} ชม.`;
+            }
+            
+            // Determine status
+            let status = '';
+            if (record.checkin_time && record.checkout_time) {
+                status = '<span class="status-badge status-complete">ครบถ้วน</span>';
+            } else if (record.checkin_time) {
+                status = '<span class="status-badge status-partial">เข้าอย่างเดียว</span>';
+            } else {
+                status = '<span class="status-badge status-missing">ไม่สมบูรณ์</span>';
+            }
+            
+            tr.innerHTML = `
+                <td>${formatDate(record.created_at)}</td>
+                <td>${displayName}</td>
+                <td>${record.checkin_time ? formatTime(record.checkin_time) : '-'}</td>
+                <td>${record.checkout_time ? formatTime(record.checkout_time) : '-'}</td>
+                <td>${workHours}</td>
+                <td>${status}</td>
+                <td title="${record.note || ''}">${record.note ? (record.note.length > 30 ? record.note.substring(0, 30) + '...' : record.note) : '-'}</td>
+                <td>
+                    <button class="btn btn-warning btn-sm" onclick="editAttendance(${record.id})">แก้ไข</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteAttendance(${record.id})">ลบ</button>
+                </td>
+            `;
+            
+            return tr;
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            return new Date(dateString).toLocaleDateString('th-TH', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            });
+        }
+
+        // Format time
+        function formatTime(dateString) {
+            if (!dateString) return '-';
+            return new Date(dateString).toLocaleTimeString('th-TH', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Update summary
+        function updateSummary() {
+            const totalRecords = attendanceData.length;
+            const uniqueUsers = [...new Set(attendanceData.map(r => r.user_id))].length;
+            const today = new Date().toDateString();
+            const todayRecords = attendanceData.filter(r => 
+                new Date(r.created_at).toDateString() === today
+            ).length;
+            const completeRecords = attendanceData.filter(r => 
+                r.checkin_time && r.checkout_time
+            ).length;
+
+            document.getElementById('totalRecords').textContent = totalRecords;
+            document.getElementById('totalUsers').textContent = uniqueUsers;
+            document.getElementById('todayRecords').textContent = todayRecords;
+            document.getElementById('completeRecords').textContent = completeRecords;
+        }
+
+        // Populate user select dropdown
+        function populateUserSelect() {
+            const select = document.getElementById('userSelect');
+            select.innerHTML = '<option value="">เลือกพนักงาน</option>';
+            
+            usersData.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.line_user_id;
+                option.textContent = `${user.display_name} (${user.line_user_id.substring(0, 10)}...)`;
+                select.appendChild(option);
+            });
+        }
+
+        // Modal Management
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            if (modalId === 'employeeModal') {
+                document.getElementById('employeeForm').reset();
+                document.getElementById('employeeId').value = '';
+            } else if (modalId === 'attendanceModal') {
+                document.getElementById('attendanceForm').reset();
+                document.getElementById('attendanceId').value = '';
+            }
+        }
+
+        // Employee Management
+        function showEmployeeModal(employee = null) {
+            const modal = document.getElementById('employeeModal');
+            const title = document.getElementById('employeeModalTitle');
+            
+            if (employee) {
+                title.textContent = 'แก้ไขข้อมูลพนักงาน';
+                document.getElementById('employeeId').value = employee.id;
+                document.getElementById('lineUserId').value = employee.line_user_id;
+                document.getElementById('displayName').value = employee.display_name || '';
+                document.getElementById('department').value = employee.department || '';
+                document.getElementById('position').value = employee.position || '';
+                document.getElementById('lineUserId').disabled = true;
+            } else {
+                title.textContent = 'เพิ่มพนักงานใหม่';
+                document.getElementById('employeeForm').reset();
+                document.getElementById('lineUserId').disabled = false;
+            }
+            
+            showModal('employeeModal');
+        }
+
+        function editEmployee(id) {
+            const employee = usersData.find(u => u.id === id);
+            if (employee) {
+                showEmployeeModal(employee);
+            }
+        }
+
+        async function saveEmployee() {
+            const form = document.getElementById('employeeForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const employeeId = document.getElementById('employeeId').value;
+            const data = {
+                line_user_id: document.getElementById('lineUserId').value,
+                display_name: document.getElementById('displayName').value,
+                department: document.getElementById('department').value,
+                position: document.getElementById('position').value
+            };
+
+            try {
+                const method = employeeId ? 'PUT' : 'POST';
+                const url = employeeId ? `/api/admin/users/${employeeId}` : '/api/admin/users';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showSuccess(result.message);
+                    closeModal('employeeModal');
+                    await loadUsersData();
+                    if (currentTab === 'employees') {
+                        loadEmployeeData();
+                    }
+                    populateUserSelect();
+                } else {
+                    showError(result.message);
+                }
+            } catch (error) {
+                console.error('Error saving employee:', error);
+                showError('เกิดข้อผิดพลาดในการบันทึก');
+            }
+        }
+
+        async function deleteEmployee(id, name) {
+            if (!confirm(`ต้องการลบพนักงาน "${name}" หรือไม่?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/users/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showSuccess(result.message);
+                    await loadUsersData();
+                    if (currentTab === 'employees') {
+                        loadEmployeeData();
+                    }
+                    populateUserSelect();
+                } else {
+                    showError(result.message);
+                }
+            } catch (error) {
+                console.error('Error deleting employee:', error);
+                showError('เกิดข้อผิดพลาดในการลบ');
+            }
+        }
+
+        // Attendance Management
+        function showAttendanceModal(attendance = null) {
+            const modal = document.getElementById('attendanceModal');
+            const title = document.getElementById('attendanceModalTitle');
+            
+            if (attendance) {
+                title.textContent = 'แก้ไขการบันทึกเวลา';
+                document.getElementById('attendanceId').value = attendance.id;
+                document.getElementById('userSelect').value = attendance.user_id;
+                document.getElementById('checkinTime').value = attendance.checkin_time ? 
+                    new Date(attendance.checkin_time).toISOString().slice(0, 16) : '';
+                document.getElementById('checkoutTime').value = attendance.checkout_time ? 
+                    new Date(attendance.checkout_time).toISOString().slice(0, 16) : '';
+                document.getElementById('checkinLat').value = attendance.checkin_lat || '';
+                document.getElementById('checkinLon').value = attendance.checkin_lon || '';
+                document.getElementById('checkoutLat').value = attendance.checkout_lat || '';
+                document.getElementById('checkoutLon').value = attendance.checkout_lon || '';
+                document.getElementById('attendanceNote').value = attendance.note || '';
+                document.getElementById('userSelect').disabled = true;
+            } else {
+                title.textContent = 'เพิ่มการบันทึกเวลา';
+                document.getElementById('attendanceForm').reset();
+                document.getElementById('userSelect').disabled = false;
+            }
+            
+            showModal('attendanceModal');
+        }
+
+        function editAttendance(id) {
+            const attendance = attendanceData.find(a => a.id === id);
+            if (attendance) {
+                showAttendanceModal(attendance);
+            }
+        }
+
+        async function saveAttendance() {
+            const form = document.getElementById('attendanceForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const attendanceId = document.getElementById('attendanceId').value;
+            const data = {
+                user_id: document.getElementById('userSelect').value,
+                checkin_time: document.getElementById('checkinTime').value || null,
+                checkout_time: document.getElementById('checkoutTime').value || null,
+                checkin_lat: document.getElementById('checkinLat').value || null,
+                checkin_lon: document.getElementById('checkinLon').value || null,
+                checkout_lat: document.getElementById('checkoutLat').value || null,
+                checkout_lon: document.getElementById('checkoutLon').value || null,
+                note: document.getElementById('attendanceNote').value || null
+            };
+
+            try {
+                const method = attendanceId ? 'PUT' : 'POST';
+                const url = attendanceId ? `/api/admin/attendance/${attendanceId}` : '/api/admin/attendance';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showSuccess(result.message);
+                    closeModal('attendanceModal');
+                    loadAttendanceData();
+                } else {
+                    showError(result.message);
+                }
+            } catch (error) {
+                console.error('Error saving attendance:', error);
+                showError('เกิดข้อผิดพลาดในการบันทึก');
+            }
+        }
+
+        async function deleteAttendance(id) {
+            if (!confirm('ต้องการลบการบันทึกเวลานี้หรือไม่?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/attendance/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showSuccess(result.message);
+                    loadAttendanceData();
+                } else {
+                    showError(result.message);
+                }
+            } catch (error) {
+                console.error('Error deleting attendance:', error);
+                showError('เกิดข้อผิดพลาดในการลบ');
+            }
+        }
+
+        // Export to Excel
+        async function exportToExcel() {
+            try {
+                const filters = getFilters();
+                const queryParams = new URLSearchParams(filters);
+                queryParams.append('format', 'excel');
+                
+                showSuccess('กำลังสร้างไฟล์ Excel...');
+                
+                const response = await fetch(`/api/admin/export?${queryParams}`);
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `attendance_report_${new Date().toISOString().split('T')[0]}.xlsx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    
+                    showSuccess('ดาวน์โหลดไฟล์ Excel สำเร็จ');
+                } else {
+                    throw new Error('Failed to export');
+                }
+            } catch (error) {
+                console.error('Export error:', error);
+                showError('เกิดข้อผิดพลาดในการส่งออกไฟล์ Excel');
+            }
+        }
+
+        // Utility functions
+        function refreshData() {
+            if (currentTab === 'attendance') {
+                loadAttendanceData();
+            } else if (currentTab === 'employees') {
+                loadEmployeeData();
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('attendanceTable').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingIndicator').style.display = 'none';
+            document.getElementById('attendanceTable').style.display = 'table';
+        }
+
+        function showEmployeeLoading() {
+            document.getElementById('employeeLoadingIndicator').style.display = 'block';
+            document.getElementById('employeeTable').style.display = 'none';
+        }
+
+        function hideEmployeeLoading() {
+            document.getElementById('employeeLoadingIndicator').style.display = 'none';
+            document.getElementById('employeeTable').style.display = 'table';
+        }
+
+        function showSuccess(message) {
+            const alert = document.getElementById('successAlert');
+            alert.textContent = message;
+            alert.style.display = 'block';
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 3000);
+        }
+
+        function showError(message) {
+            const alert = document.getElementById('errorAlert');
+            alert.textContent = message;
+            alert.style.display = 'block';
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+
+        // Initialize page when loaded
+        window.addEventListener('load', initializePage);
+    </script>
+</body>
+</html>

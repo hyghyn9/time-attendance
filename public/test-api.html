@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        #result { margin-top: 20px; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; }
+        .error { background-color: #f8d7da; }
+    </style>
+</head>
+<body>
+    <h1>Test Attendance API</h1>
+    
+    <button onclick="testAPI()">Test Check In</button>
+    <button onclick="testCheckOut()">Test Check Out</button>
+    
+    <div id="result"></div>
+
+    <script>
+        async function testAPI() {
+            const resultDiv = document.getElementById('result');
+            
+            const testData = {
+                userId: 'test-user-123',
+                action: 'checkin',
+                latitude: 15.061026406246222,
+                longitude: 102.14959549943194
+            };
+            
+            console.log('Sending test data:', testData);
+            
+            try {
+                const response = await fetch('/api/attendance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const result = await response.json();
+                console.log('Response:', result);
+                
+                resultDiv.innerHTML = `
+                    <h3>Response:</h3>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                    <p>Status: ${response.status}</p>
+                `;
+                resultDiv.className = result.success ? 'success' : 'error';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `<h3>Error:</h3><p>${error.message}</p>`;
+                resultDiv.className = 'error';
+            }
+        }
+        
+        async function testCheckOut() {
+            const resultDiv = document.getElementById('result');
+            
+            const testData = {
+                userId: 'test-user-123',
+                action: 'checkout',
+                latitude: 15.061026406246222,
+                longitude: 102.14959549943194
+            };
+            
+            console.log('Sending test data:', testData);
+            
+            try {
+                const response = await fetch('/api/attendance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const result = await response.json();
+                console.log('Response:', result);
+                
+                resultDiv.innerHTML = `
+                    <h3>Response:</h3>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                    <p>Status: ${response.status}</p>
+                `;
+                resultDiv.className = result.success ? 'success' : 'error';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `<h3>Error:</h3><p>${error.message}</p>`;
+                resultDiv.className = 'error';
+            }
+        }
+    </script>
+</body>
+</html>

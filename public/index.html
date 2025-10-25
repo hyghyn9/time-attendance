@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบบันทึกเวลาทำงาน</title>
+    <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Sarabun', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            color: white;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        
+        .status.loading {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .status.success {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+        }
+        
+        .btn-checkin {
+            background: linear-gradient(135deg, #4caf50, #45a049);
+            color: white;
+        }
+        
+        .btn-checkout {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .location-info {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .status-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🕒</div>
+        <h1>บันทึกเวลาทำงาน</h1>
+        <p class="subtitle">ระบบตรวจสอบตำแหน่งอัตโนมัติ</p>
+        
+        <div id="status" class="status loading">
+            <div class="loading-spinner"></div>
+            กำลังเริ่มต้นระบบ...
+        </div>
+        
+        <div id="todayStatus" class="status-info" style="display: none;"></div>
+        
+        <div id="buttons" style="display: none;">
+            <button id="checkinBtn" class="btn btn-checkin">
+                🕘 เข้างาน
+            </button>
+            <button id="checkoutBtn" class="btn btn-checkout">
+                🕕 ออกงาน
+            </button>
+        </div>
+        
+        <div id="locationInfo" class="location-info" style="display: none;">
+            📍 ตำแหน่งปัจจุบัน: <span id="coordinates"></span><br>
+            🏢 ระยะห่างจากสำนักงาน: <span id="distance"></span>
+        </div>
+    </div>
+
+    <script>
+        let currentPosition = null;
+        let liffData = null;
+        let todayStatus = null;
+
+        // เริ่มต้น LIFF
+        async function initializeLiff() {
+            try {
+                await liff.init({ liffId: '2007882683-Mg5pj4m2' }); // แก้ไข YOUR_LIFF_ID
+                
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
+                }
+                
+                showStatus('กำลังดึงข้อมูลผู้ใช้...', 'loading');
+                
+                // ดึงข้อมูลผู้ใช้
+                const profile = await liff.getProfile();
+                liffData = {
+                    userId: profile.userId,
+                    displayName: profile.displayName
+                };
+                
+                // ดึงสถานะวันนี้
+                await getTodayStatus();
+                
+                // ดึงพารามิเตอร์จาก URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const action = urlParams.get('action');
+                
+                // เริ่มตรวจสอบตำแหน่ง
+                await getCurrentLocation();
+                
+                // ถ้ามี action จาก URL ให้ทำทันที
+                if (action && currentPosition) {
+                    await recordAttendance(action);
+                } else {
+                    showButtons();
+                }
+                
+            } catch (error) {
+                console.error('LIFF initialization failed', error);
+                showStatus('เกิดข้อผิดพลาดในการเริ่มต้นระบบ', 'error');
+            }
+        }
+
+        // ดึงสถานะวันนี้
+        async function getTodayStatus() {
+            try {
+                const response = await fetch(`/api/status/${liffData.userId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    todayStatus = result.status;
+                    updateStatusDisplay();
+                }
+            } catch (error) {
+                console.error('Error getting today status:', error);
+            }
+        }
+
+        // อัปเดตการแสดงสถานะวันนี้
+        function updateStatusDisplay() {
+            const statusEl = document.getElementById('todayStatus');
+            
+            if (todayStatus) {
+                let statusText = '';
+                
+                if (todayStatus.checkedIn && todayStatus.checkedOut) {
+                    const checkinTime = new Date(todayStatus.checkinTime).toLocaleTimeString('th-TH', {
+                        hour: '2-digit', minute: '2-digit'
+                    });
+                    const checkoutTime = new Date(todayStatus.checkoutTime).toLocaleTimeString('th-TH', {
+                        hour: '2-digit', minute: '2-digit'
+                    });
+                    statusText = `✅ วันนี้: เข้า ${checkinTime} | ออก ${checkoutTime}`;
+                } else if (todayStatus.checkedIn) {
+                    const checkinTime = new Date(todayStatus.checkinTime).toLocaleTimeString('th-TH', {
+                        hour: '2-digit', minute: '2-digit'
+                    });
+                    statusText = `🟡 วันนี้: เข้างานแล้ว ${checkinTime}`;
+                } else {
+                    statusText = '⚪ วันนี้: ยังไม่ได้บันทึกเวลา';
+                }
+                
+                statusEl.textContent = statusText;
+                statusEl.style.display = 'block';
+            }
+        }
+
+        // ดึงตำแหน่งปัจจุบัน
+        function getCurrentLocation() {
+            return new Promise((resolve, reject) => {
+                if (!navigator.geolocation) {
+                    showStatus('เบราว์เซอร์ไม่รองรับ GPS', 'error');
+                    reject('Geolocation not supported');
+                    return;
+                }
+
+                showStatus('กำลังตรวจสอบตำแหน่ง...', 'loading');
+
+                const options = {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 0 //เดิม 60000 , 0 = ไม่ใช่ค่าแคช
+                };
+
+                //navigator.geolocation.getCurrentPosition(
+				navigator.geolocation.watchPosition(
+                    (position) => {
+                        currentPosition = {
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude,
+                            accuracy: position.coords.accuracy
+                        };
+                        
+                        // คำนวณระยะห่าง (สำหรับแสดงผล)
+						const distance1 = calculateDistance(
+							currentPosition.latitude,
+							currentPosition.longitude,
+							14.995920, // พิกัดสำนักงาน (ต้องตรงกับ server) 14.995920, 102.107690
+							102.107690
+						);
+						const distance2 = calculateDistance(
+							currentPosition.latitude,
+							currentPosition.longitude,
+							14.995906, // พิกัดสำนักงาน สำรองสำหรับ iOS (ต้องตรงกับ server) 14.995906, 102.107861
+							102.107861
+						);
+						//console.log("เช็คระยะ");
+						//console.log(distance1, distance2);
+						
+						const distance = Math.min(distance1, distance2);
+                        
+                        document.getElementById('coordinates').textContent = 
+                            `${currentPosition.latitude.toFixed(6)}, ${currentPosition.longitude.toFixed(6)}`;
+                        document.getElementById('distance').textContent = 
+                            `${Math.round(distance)} เมตร`;
+                        document.getElementById('locationInfo').style.display = 'block';
+                        
+                        if (distance <= 10) { // รัศมีที่อนุญาต
+                            showStatus('✅ ตรวจพบตำแหน่งสำเร็จ - อยู่ในบริเวณสำนักงาน', 'success');
+                        } else {
+                            showStatus(`⚠️ ตรวจพบตำแหน่งสำเร็จ - นอกบริเวณสำนักงาน (${Math.round(distance)}ม.)`, 'error');
+                        }
+                        
+                        resolve(currentPosition);
+                    },
+                    (error) => {
+                        let message = 'ไม่สามารถดึงตำแหน่งได้';
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED:
+                                message = 'กรุณาอนุญาตการเข้าถึงตำแหน่ง\nรีเฟรชหน้าเว็บและลองใหม่';
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                message = 'ตำแหน่งไม่พร้อมใช้งาน\nกรุณาตรวจสอบ GPS';
+                                break;
+                            case error.TIMEOUT:
+                                message = 'หมดเวลาในการดึงตำแหน่ง\nกรุณาลองใหม่';
+                                break;
+                        }
+                        showStatus(message, 'error');
+                        reject(error);
+                    },
+                    options
+                );
+            });
+        }
+
+        // คำนวณระยะทาง (Haversine formula)
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371000;
+            const φ1 = lat1 * Math.PI / 180;
+            const φ2 = lat2 * Math.PI / 180;
+            const Δφ = (lat2 - lat1) * Math.PI / 180;
+            const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                      Math.cos(φ1) * Math.cos(φ2) *
+                      Math.sin(Δλ/2) * Math.sin(Δλ/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+            return R * c;
+        }
+
+        // บันทึกเวลาทำงาน
+        async function recordAttendance(action) {
+            if (!currentPosition) {
+                showStatus('ไม่พบตำแหน่งปัจจุบัน กรุณาลองใหม่', 'error');
+                return;
+            }
+
+            const actionText = action === 'checkin' ? 'เข้างาน' : 'ออกงาน';
+            showStatus(`กำลังบันทึก${actionText}...`, 'loading');
+            
+            // ปิดปุ่ม
+            document.getElementById('buttons').style.display = 'none';
+
+            try {
+                // ตรวจสอบข้อมูลก่อนส่ง
+                console.log('Sending data:', {
+                    userId: liffData.userId,
+                    action: action,
+                    latitude: currentPosition.latitude,
+                    longitude: currentPosition.longitude
+                });
+                
+                if (!liffData || !liffData.userId) {
+                    alert('ไม่พบข้อมูล LINE User ID');
+                    throw new Error('ไม่พบข้อมูล LINE User ID');
+                }
+                
+                if (!currentPosition) {
+                    alert('ไม่พบข้อมูลตำแหน่ง');
+                    throw new Error('ไม่พบข้อมูลตำแหน่ง');
+                }
+                
+                const response = await fetch('/api/attendance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userId: liffData.userId,
+                        action: action,
+                        latitude: currentPosition.latitude,
+                        longitude: currentPosition.longitude
+                    })
+                });
+
+                const result = await response.json();
+                console.log('Server response:', result);
+
+                if (result.success) {
+                    showStatus(result.message, 'success');
+                    
+                    // อัปเดตสถานะวันนี้
+                    await getTodayStatus();
+                    
+                    // ปิด LIFF หลังจาก 3 วินาที
+                    setTimeout(() => {
+                        if (liff.isInClient()) {
+                            liff.closeWindow();
+                        }
+                    }, 3000);
+                } else {
+                    showStatus(result.message, 'error');
+                    showButtons(); // แสดงปุ่มใหม่
+                }
+
+            } catch (error) {
+                console.error('Attendance recording failed', error);
+                showStatus('เกิดข้อผิดพลาดในการบันทึก\nกรุณาตรวจสอบการเชื่อมต่อ', 'error');
+                showButtons(); // แสดงปุ่มใหม่
+            }
+        }
+
+        // แสดงสถานะ
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('status');
+            
+            if (type === 'loading') {
+                statusEl.innerHTML = `<div class="loading-spinner"></div>${message}`;
+            } else {
+                statusEl.innerHTML = message;
+            }
+            
+            statusEl.className = `status ${type}`;
+            statusEl.style.display = 'block';
+        }
+
+        // แสดงปุ่ม
+        function showButtons() {
+            if (!todayStatus) return;
+            
+            const buttonsEl = document.getElementById('buttons');
+            const checkinBtn = document.getElementById('checkinBtn');
+            const checkoutBtn = document.getElementById('checkoutBtn');
+            
+            // ปรับปุ่มตามสถานะ
+            if (todayStatus.checkedIn && todayStatus.checkedOut) {
+                // บันทึกครบแล้ว
+                checkinBtn.disabled = true;
+                checkoutBtn.disabled = true;
+                checkinBtn.textContent = '✅ เข้างานแล้ว';
+                checkoutBtn.textContent = '✅ ออกงานแล้ว';
+            } else if (todayStatus.checkedIn) {
+                // เข้างานแล้ว ยังไม่ออก
+                checkinBtn.disabled = true;
+                checkoutBtn.disabled = false;
+                checkinBtn.textContent = '✅ เข้างานแล้ว';
+                checkoutBtn.textContent = '🕕 ออกงาน';
+            } else {
+                // ยังไม่เข้างาน
+                checkinBtn.disabled = false;
+                checkoutBtn.disabled = true;
+                checkinBtn.textContent = '🕘 เข้างาน';
+                checkoutBtn.textContent = '⏳ ออกงาน';
+            }
+            
+            buttonsEl.style.display = 'block';
+            
+            // Event listeners
+            checkinBtn.onclick = () => {
+                if (!checkinBtn.disabled) recordAttendance('checkin');
+            };
+            
+            checkoutBtn.onclick = () => {
+                if (!checkoutBtn.disabled) recordAttendance('checkout');
+            };
+        }
+
+        // เริ่มต้นเมื่อโหลดหน้า
+        window.addEventListener('load', initializeLiff);
+        
+        // Handle page visibility change
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && liffData) {
+                // หน้าเว็บกลับมาแสดง - รีเฟรชตำแหน่งใหม่
+                getCurrentLocation().catch(console.error);
+            }
+        });
+    </script>
+</body>
+</html>
